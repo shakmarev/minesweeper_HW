@@ -200,7 +200,8 @@ class MinesweeperAI():
         adjacent_cells.remove((i, j)) # Remove the cell itself
 
         if any(adjacent_cells):
-            self.knowledge.append(Sentence(adjacent_cells, count))
+            new_sentence = Sentence(adjacent_cells, count)
+            self.knowledge.append(new_sentence)
 
         # Mark any additional cells as safe or as mines if it can be concluded based on the AI's knowledge base
         for sentence in self.knowledge:
@@ -210,12 +211,16 @@ class MinesweeperAI():
                 self.mark_safe(safe)
 
         # Add any new sentences to the AI's knowledge base if they can be inferred from existing knowledge
-        for sentence1 in self.knowledge:
-            for sentence2 in self.knowledge:
-                if sentence1.cells.issubset(sentence2.cells):
-                    new_sentence = Sentence(sentence2.cells - sentence1.cells, sentence2.count - sentence1.count)
-                    if new_sentence not in self.knowledge:
-                        self.knowledge.append(new_sentence)
+        new_knowledge = []
+        for sentence in self.knowledge:
+            if any(new_sentence.cells) and new_sentence.cells.issubset(sentence.cells):
+                create_sentence = Sentence(sentence.cells - new_sentence.cells, sentence.count - new_sentence.count)
+                if create_sentence not in self.knowledge:
+                    new_knowledge.append(create_sentence)
+            if len(sentence.cells) == 0:
+                self.knowledge.remove(sentence)
+
+        self.knowledge += new_knowledge
 
     def make_safe_move(self):
         """
